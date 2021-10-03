@@ -33,7 +33,7 @@ ATankPawn::ATankPawn()
 void ATankPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame
@@ -41,14 +41,21 @@ void ATankPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	FVector newActorLocation = GetActorLocation() 
-		+ GetActorForwardVector() * DeltaTime * MoveSpeed * TargetMoveForwardAxis;
+	float deltaMove = DeltaTime * MoveSpeed;
+	FVector forwardMove = GetActorForwardVector() * deltaMove * TargetMoveForwardAxis;
+	FVector rightMove = GetActorRightVector() * deltaMove * TargetMoveRightAxis;
+	FVector newActorLocation = GetActorLocation() + forwardMove + rightMove;
 	SetActorLocation(newActorLocation);
 }
 
 void ATankPawn::MoveForward(float InAxisValue)
 {
 	TargetMoveForwardAxis = InAxisValue;
+}
+
+void ATankPawn::MoveRight(float InAxisValue)
+{
+	TargetMoveRightAxis = InAxisValue;
 }
 
 

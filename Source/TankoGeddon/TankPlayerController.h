@@ -16,7 +16,12 @@ class TANKOGEDDON_API ATankPlayerController : public APlayerController
 public:
 	// Called to bind functionality to input
 	virtual void SetupInputComponent() override;
+	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Controlled")
+	class ATankPawn* Tank;
 
 private:
 	void MoveForward(float InAxisValue);
+	void MoveRight(float InAxisValue);
 };

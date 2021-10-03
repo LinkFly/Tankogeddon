@@ -8,13 +8,27 @@ void ATankPlayerController::SetupInputComponent() {
 	Super::SetupInputComponent();
 
 	InputComponent->BindAxis(TEXT("MoveForward"), this, &ATankPlayerController::MoveForward);
+	InputComponent->BindAxis(TEXT("MoveRight"), this, &ATankPlayerController::MoveRight);
+}
+
+void ATankPlayerController::BeginPlay()
+{
+	auto tank = Cast<ATankPawn>(GetPawn());
+	if (tank) {
+		Tank = tank;
+	} else UE_LOG(LogTemp, Error, TEXT("Bad cast to ATankPawn"));
 }
 
 void ATankPlayerController::MoveForward(float InAxisValue)
 {
-	//FVector location = GetActorLocation();
-	auto tank = Cast<ATankPawn>(GetPawn());
-	if (tank) {
-		tank->MoveForward(InAxisValue);
+	if (Tank) {
+		Tank->MoveForward(InAxisValue);
+	}
+}
+
+void ATankPlayerController::MoveRight(float InAxisValue)
+{
+	if (Tank) {
+		Tank->MoveRight(InAxisValue);
 	}
 }
