@@ -21,7 +21,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Controlled")
 	class ATankPawn* Tank;
 
+	virtual void Tick(float DeltaSeconds) override;
+
 private:
 	void MoveForward(float InAxisValue);
-	void MoveRight(float InAxisValue);
+	void RotateRight(float InAxisValue);
+	void Fire();
 };
