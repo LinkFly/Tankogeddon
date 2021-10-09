@@ -43,7 +43,7 @@ void ATankPlayerController::Tick(float DeltaSeconds)
 	TurretTargetDirection.Normalize();
 	FVector TurretTargetPosition = tankLocation + TurretTargetDirection * 500;
 	//UE_LOG(TankoGeddon, Log, TEXT("tank: %s, dir: %s"), *tankLocation.ToString(), *TurretTargetDirection.ToString());
-	DrawDebugLine(GetWorld(), tankLocation, TurretTargetPosition, FColor::Red, false, .1f, 5);
+	DrawDebugLine(GetWorld(), tankLocation, TurretTargetPosition, FColor::Red, false, .1f, 0, 5);
 	
 	
 	Tank->SetTurretTargetPosition(TurretTargetPosition);
