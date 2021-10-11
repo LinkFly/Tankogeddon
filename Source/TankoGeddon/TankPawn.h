@@ -38,13 +38,13 @@ protected:
 	float RotationSpeed = 100.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
-	float MovementSmoothness = .1f;
+	float MovementSmoothness = 1.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
-	float RotationSmoothness = .1f;
+	float RotationSmoothness = 1.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Turret")
-	float TurretRotationSmoothness = .1f;
+	float TurretRotationSmoothness = 1.f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Turret")
 	TSubclassOf<class ACannon> CannonClass;
@@ -71,6 +71,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Turret")
 	void Fire();
+
+	UFUNCTION(BlueprintCallable, Category = "Turret")
+	void FireSpecial();
 
 	UFUNCTION(BlueprintCallable, Category = "Turret")
 	void SetupCannon();

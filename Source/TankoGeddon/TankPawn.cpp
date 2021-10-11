@@ -50,21 +50,26 @@ void ATankPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	CurrentMoveForwardAxis = FMath::Lerp(CurrentMoveForwardAxis, TargetMoveForwardAxis, MovementSmoothness);
+	CurrentMoveForwardAxis = FMath::FInterpTo(CurrentMoveForwardAxis, TargetMoveForwardAxis, DeltaTime, MovementSmoothness);
 	FVector direction = GetActorForwardVector() * CurrentMoveForwardAxis;
-
-	FVector newActorLocation = GetActorLocation() + direction * MoveSpeed * DeltaTime;
+	FVector newActorLocation = GetActorLocation() + direction * MoveSpeed;
 	SetActorLocation(newActorLocation);
-
-	CurrentRotateRightAxis = FMath::Lerp(CurrentRotateRightAxis, TargetRotateRightAxis, RotationSmoothness);
-	float rotation = GetActorRotation().Yaw + CurrentRotateRightAxis * RotationSpeed * DeltaTime;
+	CurrentRotateRightAxis = FMath::FInterpTo(CurrentRotateRightAxis, TargetRotateRightAxis, DeltaTime, RotationSmoothness);
+	float rotation = GetActorRotation().Yaw + CurrentRotateRightAxis * RotationSpeed;
 	SetActorRotation(FRotator{0, rotation, 0});
 
 	FRotator targetRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TurretTargetPosition);
+	float TargetRotationYaw = targetRotation.Yaw;
 	FRotator curRotation = TurretMesh->GetComponentRotation();
-	targetRotation.Roll = curRotation.Roll;
-	targetRotation.Pitch = curRotation.Pitch;
-	TurretMesh->SetWorldRotation(FMath::Lerp(curRotation, targetRotation, TurretRotationSmoothness));
+
+	float curRotationYaw = curRotation.Yaw;
+	float targetRotationYaw = targetRotation.Yaw;
+	if (FMath::Sign(curRotationYaw) != FMath::Sign(targetRotationYaw)
+		&& FMath::Abs(curRotationYaw - targetRotationYaw) > 180.f) {
+		targetRotationYaw += FMath::Sign(curRotationYaw) * 360.f;
+	}
+	curRotation.Yaw = FMath::FInterpTo(curRotationYaw, targetRotationYaw, DeltaTime, TurretRotationSmoothness);
+	TurretMesh->SetWorldRotation(curRotation);
 }
 
 void ATankPawn::MoveForward(float InAxisValue)
@@ -85,6 +90,12 @@ void ATankPawn::SetTurretTargetPosition(const FVector& TargetPosition)
 void ATankPawn::Fire()
 {
 	if (Cannon) Cannon->Fire();
+}
+
+
+void ATankPawn::FireSpecial()
+{
+	if (Cannon) Cannon->FireSpecial();
 }
 
 void ATankPawn::SetupCannon()

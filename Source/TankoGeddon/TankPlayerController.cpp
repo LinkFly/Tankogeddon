@@ -31,22 +31,14 @@ void ATankPlayerController::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	
 	if(!Tank) return;
-	/*float x, y;
-	auto bPosRes = GetMousePosition(x, y);
-	UE_LOG(TankoGeddon, Log, TEXT("x: %f, y: %f"), x, y);*/
 	FVector worldMousePos, worldMouseDir;
 	DeprojectMousePositionToWorld(worldMousePos, worldMouseDir);
-	//UE_LOG(TankoGeddon, Log, TEXT("worldMousePos: %s, worldMouseDir: %s"), *worldMousePos.ToString(), *worldMouseDir.ToString());
-
 	auto tankLocation = Tank->GetActorLocation();
 	worldMousePos.Z = tankLocation.Z;
 	FVector TurretTargetDirection = worldMousePos - tankLocation;
 	TurretTargetDirection.Normalize();
-	FVector TurretTargetPosition = tankLocation + TurretTargetDirection * 1000;
-	//UE_LOG(TankoGeddon, Log, TEXT("tank: %s, dir: %s"), *tankLocation.ToString(), *TurretTargetDirection.ToString());
+	FVector TurretTargetPosition = tankLocation + TurretTargetDirection * 500;
 	DrawDebugLine(GetWorld(), tankLocation, TurretTargetPosition, FColor::Red, false, .1f, .0f, 3.f);
-	
-	
 	Tank->SetTurretTargetPosition(TurretTargetPosition);
 }	
 
@@ -67,5 +59,10 @@ void ATankPlayerController::RotateRight(float InAxisValue)
 void ATankPlayerController::Fire()
 {
 	if (Tank) Tank->Fire();
+}
+
+void ATankPlayerController::FireSpecial()
+{
+	if (Tank) Tank->FireSpecial();
 }
 

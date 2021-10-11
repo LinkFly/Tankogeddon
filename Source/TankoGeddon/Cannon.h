@@ -23,6 +23,9 @@ protected:
 	UArrowComponent* ProjectileSpawnPoint;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
+	int32 AmmoCount = 20;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
 	float FireRate = 1.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
@@ -30,11 +33,18 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
 	float FireDamage = 1.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
+	int32 ShotsInSeries = 3;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
+	float TimeBetweenSeriesOfShots = .2f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
 	ECannonType Type = ECannonType::FireProjectile;
 
 	FTimerHandle ReloadTimerHandle;
+	TArray< FTimerHandle* > TimerHandlesForSeriesOfShots;
 
 	bool bIsReadyToFire = false;
 
@@ -42,8 +52,11 @@ public:
 	// Sets default values for this actor's properties
 	ACannon();
 
+	void Shot(bool bSpecial);
+	void SimpleShot() { Shot(false); }
+	void SpecialShot() { Shot(true); }
 	void Fire();
-
+	void FireSpecial();
 	bool IsReadyToFire();
 
 protected:
@@ -53,4 +66,6 @@ protected:
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
 	void Reload();
+private:
+	void ClearTimersForSeries();
 };

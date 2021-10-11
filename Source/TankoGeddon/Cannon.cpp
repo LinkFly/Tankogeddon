@@ -24,22 +24,51 @@ ACannon::ACannon()
 	ProjectileSpawnPoint->SetupAttachment(Mesh);
 }
 
+void ACannon::Shot(bool bSpecial)
+{
+	FString extra;
+	if (bSpecial)
+		extra = TEXT(" [SPECIAL]");
+	extra += TEXT(" Ammo left: ") + FString::FromInt(AmmoCount);
+
+	if (Type == ECannonType::FireProjectile) {
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3, FColor::Green, *(TEXT("Cannon: FireProjectile") + extra));
+	}
+	else if (Type == ECannonType::FireTrace) {
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3, FColor::Green, *(TEXT("Cannon: FireTrace") + extra));
+	}
+	
+}
+
 void ACannon::Fire()
 {
-	
 	if (!IsReadyToFire()) return;
 
 	bIsReadyToFire = false;
-	if (Type == ECannonType::FireProjectile) {
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3, FColor::Green, TEXT("Cannon: FireProjectile"));
-	}
-	else if (Type == ECannonType::FireTrace) {
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3, FColor::Green, TEXT("Cannon: FireTrace"));
-	}
-	
+	SimpleShot();
 	UWorld* world = GetWorld();
 	if (world) {
 		world->GetTimerManager().SetTimer(ReloadTimerHandle, this, &ACannon::Reload, 1.f / FireRate, false);
+	}
+}
+
+void ACannon::FireSpecial()
+{
+	if (!IsReadyToFire()) return;
+	bIsReadyToFire = false;
+	if (AmmoCount == 0) return;
+	--AmmoCount;
+	
+	UWorld* world = GetWorld();
+	if (world) {
+		SpecialShot();
+		for (int32 i = 1; i < FMath::Min(AmmoCount, ShotsInSeries); ++i) {
+			FTimerHandle* pTimerHandle = new FTimerHandle{};
+			TimerHandlesForSeriesOfShots.Add(pTimerHandle);
+			world->GetTimerManager().SetTimer(*pTimerHandle, this, &ACannon::SpecialShot, TimeBetweenSeriesOfShots * i, false);
+		}
+		float timeToFireUnlock = FMath::Max(TimeBetweenSeriesOfShots * ShotsInSeries, 1.f / FireRate);
+		world->GetTimerManager().SetTimer(ReloadTimerHandle, this, &ACannon::Reload, timeToFireUnlock, false);
 	}
 }
 
@@ -60,9 +89,23 @@ void ACannon::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandle);
+	ClearTimersForSeries();
 }
 
 void ACannon::Reload()
 {
+	ClearTimersForSeries();
 	bIsReadyToFire = true;
+
+}
+
+void ACannon::ClearTimersForSeries()
+{
+	if (TimerHandlesForSeriesOfShots.Num() > 0) {
+		for (auto timerHandle : TimerHandlesForSeriesOfShots) {
+			GetWorld()->GetTimerManager().ClearTimer(*timerHandle);
+			delete timerHandle;
+		}
+		TimerHandlesForSeriesOfShots.Empty();
+	}
 }
