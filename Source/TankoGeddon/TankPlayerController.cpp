@@ -15,6 +15,7 @@ void ATankPlayerController::SetupInputComponent() {
 	InputComponent->BindAxis(TEXT("MoveForward"), this, &ATankPlayerController::MoveForward);
 	InputComponent->BindAxis(TEXT("RotateRight"), this, &ATankPlayerController::RotateRight);
 	InputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &ATankPlayerController::Fire);
+	InputComponent->BindAction(TEXT("FireSpecial"), IE_Pressed, this, &ATankPlayerController::FireSpecial);
 }
 
 void ATankPlayerController::BeginPlay()
@@ -38,12 +39,12 @@ void ATankPlayerController::Tick(float DeltaSeconds)
 	//UE_LOG(TankoGeddon, Log, TEXT("worldMousePos: %s, worldMouseDir: %s"), *worldMousePos.ToString(), *worldMouseDir.ToString());
 
 	auto tankLocation = Tank->GetActorLocation();
+	worldMousePos.Z = tankLocation.Z;
 	FVector TurretTargetDirection = worldMousePos - tankLocation;
-	TurretTargetDirection.Z = 0.f;
 	TurretTargetDirection.Normalize();
-	FVector TurretTargetPosition = tankLocation + TurretTargetDirection * 500;
+	FVector TurretTargetPosition = tankLocation + TurretTargetDirection * 1000;
 	//UE_LOG(TankoGeddon, Log, TEXT("tank: %s, dir: %s"), *tankLocation.ToString(), *TurretTargetDirection.ToString());
-	DrawDebugLine(GetWorld(), tankLocation, TurretTargetPosition, FColor::Red, false, .1f, 0, 5);
+	DrawDebugLine(GetWorld(), tankLocation, TurretTargetPosition, FColor::Red, false, .1f, .0f, 3.f);
 	
 	
 	Tank->SetTurretTargetPosition(TurretTargetPosition);
