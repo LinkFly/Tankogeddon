@@ -76,7 +76,7 @@ public:
 	void FireSpecial();
 
 	UFUNCTION(BlueprintCallable, Category = "Turret")
-	void SetupCannon();
+	void SetupCannon(TSubclassOf<class ACannon> NewCannonClass = nullptr);
 
 private:
 	float CurrentMoveForwardAxis = 0.f;

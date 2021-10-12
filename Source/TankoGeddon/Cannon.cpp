@@ -7,6 +7,8 @@
 #include <Components/ArrowComponent.h>
 #include <Engine/EngineTypes.h>
 #include "TankoGeddon.h"
+#include "Projectile.h"
+#include <DrawDebugHelpers.h>
 
 // Sets default values
 ACannon::ACannon()
@@ -33,9 +35,28 @@ void ACannon::Shot(bool bSpecial)
 
 	if (Type == ECannonType::FireProjectile) {
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3, FColor::Green, *(TEXT("Cannon: FireProjectile") + extra));
+		AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(
+			ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
+		if (projectile)
+			projectile->Start();
 	}
 	else if (Type == ECannonType::FireTrace) {
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3, FColor::Green, *(TEXT("Cannon: FireTrace") + extra));
+		FHitResult outHit;
+		FVector traceStart = ProjectileSpawnPoint->GetComponentLocation();
+		FVector traceEnd = traceStart + ProjectileSpawnPoint->GetForwardVector() * FireRange;
+		FCollisionQueryParams traceParams(FName(TEXT("FireTrace")), true, this);
+		traceParams.bReturnPhysicalMaterial = false;
+		bool res = GetWorld()->LineTraceSingleByChannel(outHit, traceStart, traceEnd,
+			(ECollisionChannel::ECC_GameTraceChannel1), traceParams);
+		if (res) {
+			traceEnd = outHit.Location;
+			if (outHit.Actor.IsValid() && outHit.Component.IsValid()
+				&& outHit.Component->GetCollisionObjectType() == ECollisionChannel::ECC_Destructible) {
+				outHit.Actor->Destroy();
+			}
+		}
+		DrawDebugLine(GetWorld(), traceStart, traceEnd, FColor::Green, false, .5f, 0, 5.f);
 	}
 	
 }
@@ -67,7 +88,7 @@ void ACannon::FireSpecial()
 			TimerHandlesForSeriesOfShots.Add(pTimerHandle);
 			world->GetTimerManager().SetTimer(*pTimerHandle, this, &ACannon::SpecialShot, TimeBetweenSeriesOfShots * i, false);
 		}
-		float timeToFireUnlock = FMath::Max(TimeBetweenSeriesOfShots * ShotsInSeries, 1.f / FireRate);
+		float timeToFireUnlock = FMath::Max(TimeBetweenSeriesOfShots * ShotsInSeries, 1.f / FireRateSpecial);
 		world->GetTimerManager().SetTimer(ReloadTimerHandle, this, &ACannon::Reload, timeToFireUnlock, false);
 	}
 }

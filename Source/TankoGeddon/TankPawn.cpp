@@ -41,7 +41,6 @@ ATankPawn::ATankPawn()
 void ATankPawn::BeginPlay()
 {
 	Super::BeginPlay();
-
 	SetupCannon();
 }
 
@@ -53,7 +52,7 @@ void ATankPawn::Tick(float DeltaTime)
 	CurrentMoveForwardAxis = FMath::FInterpTo(CurrentMoveForwardAxis, TargetMoveForwardAxis, DeltaTime, MovementSmoothness);
 	FVector direction = GetActorForwardVector() * CurrentMoveForwardAxis;
 	FVector newActorLocation = GetActorLocation() + direction * MoveSpeed;
-	SetActorLocation(newActorLocation);
+	SetActorLocation(newActorLocation, true);
 	CurrentRotateRightAxis = FMath::FInterpTo(CurrentRotateRightAxis, TargetRotateRightAxis, DeltaTime, RotationSmoothness);
 	float rotation = GetActorRotation().Yaw + CurrentRotateRightAxis * RotationSpeed;
 	SetActorRotation(FRotator{0, rotation, 0});
@@ -62,14 +61,17 @@ void ATankPawn::Tick(float DeltaTime)
 	float TargetRotationYaw = targetRotation.Yaw;
 	FRotator curRotation = TurretMesh->GetComponentRotation();
 
-	float curRotationYaw = curRotation.Yaw;
-	float targetRotationYaw = targetRotation.Yaw;
-	if (FMath::Sign(curRotationYaw) != FMath::Sign(targetRotationYaw)
-		&& FMath::Abs(curRotationYaw - targetRotationYaw) > 180.f) {
-		targetRotationYaw += FMath::Sign(curRotationYaw) * 360.f;
-	}
-	curRotation.Yaw = FMath::FInterpTo(curRotationYaw, targetRotationYaw, DeltaTime, TurretRotationSmoothness);
-	TurretMesh->SetWorldRotation(curRotation);
+	//float curRotationYaw = curRotation.Yaw;
+	//float targetRotationYaw = targetRotation.Yaw;
+	//if (FMath::Sign(curRotationYaw) != FMath::Sign(targetRotationYaw)
+	//	&& FMath::Abs(curRotationYaw - targetRotationYaw) > 180.f) {
+	//	targetRotationYaw += FMath::Sign(curRotationYaw) * 360.f;
+	//}
+	//curRotation.Yaw = FMath::FInterpTo(curRotationYaw, targetRotationYaw, DeltaTime, TurretRotationSmoothness);
+	//TurretMesh->SetWorldRotation(curRotation);
+	targetRotation.Pitch = curRotation.Pitch;
+	targetRotation.Roll = curRotation.Roll;
+	TurretMesh->SetWorldRotation(FMath::RInterpTo(curRotation, targetRotation, DeltaTime, TurretRotationSmoothness));
 }
 
 void ATankPawn::MoveForward(float InAxisValue)
@@ -98,14 +100,22 @@ void ATankPawn::FireSpecial()
 	if (Cannon) Cannon->FireSpecial();
 }
 
-void ATankPawn::SetupCannon()
-{
+void ATankPawn::SetupCannon(TSubclassOf<class ACannon> NewCannonClass)
+{	
+	TSubclassOf<class ACannon> curCannonClass;
+	if (NewCannonClass == nullptr) {
+		curCannonClass = CannonClass;
+	}
+	else {
+		curCannonClass = NewCannonClass;
+	}
+
 	if (Cannon) {
 		Cannon->Destroy();
 	}
 	FActorSpawnParameters params;
 	params.Instigator = this;
 	params.Owner = this;
-	Cannon = GetWorld()->SpawnActor<ACannon>(CannonClass, params);
+	Cannon = GetWorld()->SpawnActor<ACannon>(curCannonClass, params);
 	Cannon->AttachToComponent(CannonSpawnPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 }
