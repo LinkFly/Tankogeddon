@@ -4,10 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "ThingBox.h"
 #include "AmmoBox.generated.h"
 
+class ATankPawn;
+
 UCLASS()
-class TANKOGEDDON_API AAmmoBox : public AActor
+class TANKOGEDDON_API AAmmoBox : public AThingBox
 {
 	GENERATED_BODY()
 	
@@ -16,17 +19,8 @@ public:
 	AAmmoBox();
 
 protected:
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
-	class UStaticMeshComponent* Mesh;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Turret")
 	TSubclassOf<class ACannon> CannonClass;
 
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	UFUNCTION()
-	void OnMeshBeginOverlap(class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, 
-		class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	virtual void ActionWithTank(ATankPawn* Tank) override;
 };

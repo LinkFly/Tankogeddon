@@ -10,11 +10,22 @@
 #include <Engine/EngineTypes.h>
 #include "Cannon.generated.h"
 
+//class ATankPawn;
 UCLASS()
 class TANKOGEDDON_API ACannon : public AActor
 {
 	GENERATED_BODY()
-	
+
+	//friend class ATankPawn;
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
+	ECannonType Type = ECannonType::FireProjectile;
+
+	UFUNCTION()
+	static int32 GetDefaultAmmoCount() { return 0; }
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
+	int32 AmmoCount = 20;
+
 protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	UStaticMeshComponent* Mesh;
@@ -23,13 +34,13 @@ protected:
 	UArrowComponent* ProjectileSpawnPoint;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
-	int32 AmmoCount = 20;
+	int32 MaxAmmoCount = -1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
-	float FireRate = 1.f;
+	float FireRate = .5f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
-	float FireRateSpecial = .5f;
+	float FireRateSpecial = .25f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite,
 		meta = (EditCondition = "Type == ECannonType::FireTrace", EditConditionHides),
@@ -40,23 +51,23 @@ protected:
 	float FireDamage = 1.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (ClampMin = 1), Category = "FireParams")
-	int32 ShotsInSeries = 3;
+	int32 ShotsInSeries = 20;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, 
 		meta = (EditCondition = "ShotsInSeries > 1", EditConditionHides), 
 		Category = "FireParams")
-	float TimeBetweenSeriesOfShots = .2f;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
-	ECannonType Type = ECannonType::FireProjectile;
+	float TimeBetweenSeriesOfShots = .05f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite,
-		meta = (EditCondition = "Type == ECannonType::FireProjectile", EditConditionHides), 
+		meta = (EditCondition = "Type == ECannonType::FireProjectile", EditConditionHides),
 		Category = "FireParams")
 	TSubclassOf<class AProjectile> ProjectileClass;
 
 	FTimerHandle ReloadTimerHandle;
-	TArray< FTimerHandle* > TimerHandlesForSeriesOfShots;
+	FTimerHandle NextShotInSeries;
+	int32 curShotInSeries;
+	//FTimerHandle EndSeriesTimerHandle;
+	//TArray< FTimerHandle* > TimerHandlesForSeriesOfShots;
 
 	bool bIsReadyToFire = false;
 
@@ -67,11 +78,14 @@ public:
 	ACannon();
 
 	void Shot(bool bSpecial);
-	void SimpleShot() { Shot(false); }
-	void SpecialShot() { Shot(true); }
+	void SimpleShot();
+	void SpecialShot();
 	void Fire();
 	void FireSpecial();
 	bool IsReadyToFire();
+	void SetupBullits(int32 Count);
+	void AddBullits(int32 Count);
+	bool EqualProjectileClass(const ACannon* Other) const;
 
 protected:
 	// Called when the game starts or when spawned
@@ -81,5 +95,8 @@ protected:
 
 	void Reload();
 private:
-	void ClearTimersForSeries();
+	//void ClearTimersForSeries();
+	void FireGeneral(bool bSpecial);
+	void PullBullitsFill();
+	//void HandlerEndSeries();
 };

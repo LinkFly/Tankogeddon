@@ -4,4 +4,4 @@
 
 #include "CoreMinimal.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(TankoGeddon, Log, All)
+DECLARE_LOG_CATEGORY_EXTERN(LogTankoGeddon, Log, All)

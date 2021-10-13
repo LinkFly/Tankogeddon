@@ -5,6 +5,7 @@
 #include <Components/SceneComponent.h>
 #include <Components/StaticMeshComponent.h>
 #include "TankoGeddon.h"
+#include <Kismet/GameplayStatics.h>
 
 // Sets default values
 AProjectile::AProjectile()
@@ -22,11 +23,7 @@ AProjectile::AProjectile()
 
 	Mesh->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel1);
 	Mesh->OnComponentHit.AddDynamic(this, &AProjectile::OnMeshHit);
-}
-
-void AProjectile::Start()
-{
-	
+	UE_LOG(LogTankoGeddon, Log, TEXT("Created (constructor): %s"), *GetName());
 }
 
 void AProjectile::OnMeshHit(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -36,12 +33,19 @@ void AProjectile::OnMeshHit(class UPrimitiveComponent* HitComponent, class AActo
 	if (OtherActor && OtherComp && OtherComp->GetCollisionObjectType() == ECC_Destructible) {
 		OtherActor->Destroy();
 	}
-	Destroy();
+	UE_LOG(LogTankoGeddon, Log, TEXT("Destroy on hit: %s"), *GetName());
+	//Destroy();
+	ReleaseInstance(this, this);
 }
 
 void AProjectile::Move()
 {
 
+}
+
+ATankoGeddonGameModeBase* AProjectile::GetCurrentGameMode(AActor* Owner)
+{
+	return ATankoGeddonGameModeBase::GetCurrentGameMode(Owner);
 }
 
 /*
@@ -61,6 +65,25 @@ void AProjectile::Tick(float DeltaTime)
 	SetActorLocation(nextPosition, true);
 
 	if (FVector::Dist(GetActorLocation(), StartPosition) > FireRange) {
-		Destroy();
+		UE_LOG(LogTankoGeddon, Log, TEXT("Destroy on range: %s"), *GetName());
+		//Destroy();
+		ReleaseInstance(this, this);
 	}
+}
+
+
+AProjectile* AProjectile::CreateInstance(AActor* Owner, TSubclassOf<AProjectile> ProjectileClass, const FVector& Location, const FRotator& Rotation)
+{
+	//return GEngine->GameViewport->GetWorld()->SpawnActor<AProjectile>(ProjectileClass, Location, Rotation);
+	auto gameMode = GetCurrentGameMode(Owner);
+	if (!gameMode) return nullptr;
+	return Cast<AProjectile>(gameMode->ReceiveActor(ProjectileClass, Location, Rotation));
+}
+
+bool AProjectile::ReleaseInstance(AActor* Owner, AProjectile* Projectile)
+{
+	//return Projectile->Destroy();
+	auto gameMode = GetCurrentGameMode(Owner);
+	if (!gameMode) return nullptr;
+	return gameMode->ReturnActor(Projectile);
 }

@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "ActorsPull.h"
+#include <GameFramework/Actor.h>
 #include "TankoGeddonGameModeBase.generated.h"
 
 /**
@@ -17,7 +19,20 @@ class TANKOGEDDON_API ATankoGeddonGameModeBase : public AGameModeBase
 	/*virtual void BeginPlay() override {
 		Super::BeginPlay();
 	}*/
-	
-	UFUNCTION(BlueprintCallable, Category = "Test")
-	void Test() {}
+
+public:
+	static ATankoGeddonGameModeBase* GetCurrentGameMode(AActor* LiveActor);
+	ATankoGeddonGameModeBase();
+	void PullFill(TSubclassOf<AActor> ActorClass);
+	AActor* ReceiveActor(TSubclassOf<AActor> ActorClass,
+			const FVector& Location, const FRotator& Rotation);
+	bool ReturnActor(AActor* Actor);
+	void ActorsPullDump();
+	void PullInit(int32 SubPullsCount, int32 SubPullSize);
+private:
+
+	UPROPERTY()
+	UActorsPull* Pull;
+
+
 };

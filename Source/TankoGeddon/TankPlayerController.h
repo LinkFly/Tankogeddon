@@ -23,9 +23,18 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	// Test (ignore it)
+	UFUNCTION(exec)
+	void mytest();
+
+	UFUNCTION(exec)
+	void ActorsPullDump();
+
 private:
 	void MoveForward(float InAxisValue);
 	void RotateRight(float InAxisValue);
 	void Fire();
 	void FireSpecial();
+	void SwitchCannon();
+
 };

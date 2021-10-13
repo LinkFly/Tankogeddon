@@ -100,22 +100,85 @@ void ATankPawn::FireSpecial()
 	if (Cannon) Cannon->FireSpecial();
 }
 
+void ATankPawn::SwitchCannon()
+{
+	UE_LOG(LogTankoGeddon, Log, TEXT("Switch CannonsClasses.Num(): %d"), CannonsClasses.Num());
+	if (CannonsClasses.Num() >= 2) {
+		UE_LOG(LogTankoGeddon, Log, TEXT("Switch CannonsClasses.Num() > 2"));
+		auto lastCannon = CannonsClasses[CannonsClasses.Num() - 1];
+		for (int32 i = CannonsClasses.Num() - 1; i > 0 ; --i) {
+			CannonsClasses[i] = CannonsClasses[i - 1];
+		}
+		CannonsClasses[0] = lastCannon;
+	}
+	SetupCannon();
+}
+
 void ATankPawn::SetupCannon(TSubclassOf<class ACannon> NewCannonClass)
 {	
 	TSubclassOf<class ACannon> curCannonClass;
 	if (NewCannonClass == nullptr) {
-		curCannonClass = CannonClass;
+		if (CannonsClasses.Num() == 0) {
+			return;
+		}
 	}
 	else {
-		curCannonClass = NewCannonClass;
+		//if (CannonsClasses.Num() >= 1 && CannonsClasses.Last() == NewCannonClass) {
+		//	//UE_LOG(LogTankoGeddon, Log, TEXT("if Cannon"));
+		//	//if (newCannon->Type == Cannon->Type && newCannon->Type == ECannonType::FireProjectile
+		//	//	&& newCannon->EqualProjectileClass(Cannon))
+		//	//{
+		//	//	UE_LOG(LogTankoGeddon, Log, TEXT("equal cannons"));
+		//	//	SetupBullits(newCannon->AmmoCount + Cannon->AmmoCount, newCannon);
+		//	//}
+		//	//auto tmpObj = NewObject(nullptr, NewCannonClass);
+		//	//tmpObj->Destroy();
+		//	//NewCannonClass->GetDefaultAmmoCount();
+		//	//return;
+		//}
+		if (!(CannonsClasses.Num() >= 1 && CannonsClasses.Last() == NewCannonClass))
+		{
+			if (CannonsClasses.Num() < MaxCannons) {
+				UE_LOG(LogTankoGeddon, Log, TEXT("CannonsClasses.Num(): %d"), CannonsClasses.Num());
+				CannonsClasses.Add(NewCannonClass);
+			}
+			else {
+				CannonsClasses[CannonsClasses.Num() - 1] = NewCannonClass;
+			}
+		}
 	}
+	curCannonClass = CannonsClasses.Last();
 
-	if (Cannon) {
-		Cannon->Destroy();
-	}
 	FActorSpawnParameters params;
 	params.Instigator = this;
 	params.Owner = this;
-	Cannon = GetWorld()->SpawnActor<ACannon>(curCannonClass, params);
-	Cannon->AttachToComponent(CannonSpawnPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	auto newCannon = GetWorld()->SpawnActor<ACannon>(curCannonClass, params);
+	auto curAmmoCount = newCannon->AmmoCount;
+	if (Cannon) {
+		UE_LOG(LogTankoGeddon, Log, TEXT("if Cannon"));
+		if (newCannon->EqualProjectileClass(Cannon))
+		{
+			UE_LOG(LogTankoGeddon, Log, TEXT("equal cannons"));
+			curAmmoCount += Cannon->AmmoCount;
+		}
+		Cannon->Destroy();
+	}
+	newCannon->AttachToComponent(CannonSpawnPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	Cannon = newCannon;
+	SetupBullits(curAmmoCount, newCannon);
+}
+
+void ATankPawn::SetupBullits(int32 Count, ACannon* SomeCannon)
+{
+	ACannon* curCannon = SomeCannon ? SomeCannon : Cannon;
+	if (curCannon) {
+		curCannon->SetupBullits(Count);
+	}
+}
+
+void ATankPawn::AddBullits(int32 Count)
+{
+	if (Cannon) {
+		Cannon->AddBullits(Count);
+	}
 }

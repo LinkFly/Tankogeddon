@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "TankogeddonGameModeBase.h"
 #include "Projectile.generated.h"
 
 UCLASS()
@@ -12,10 +13,13 @@ class TANKOGEDDON_API AProjectile : public AActor
 	GENERATED_BODY()
 	
 public:	
+	static AProjectile* CreateInstance(AActor* Owner, TSubclassOf<AProjectile> ProjectileClass, 
+		const FVector& Location, const FRotator& Rotation);
+
+	static bool ReleaseInstance(AActor* Owner, AProjectile* Projectile);
+
 	// Sets default values for this actor's properties
 	AProjectile();
-
-	void Start();
 
 protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
@@ -39,6 +43,8 @@ protected:
 
 	UFUNCTION()
 	void Move();
+
+	static ATankoGeddonGameModeBase* GetCurrentGameMode(AActor* Owner);
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

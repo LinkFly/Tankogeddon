@@ -31,14 +31,38 @@ void ACannon::Shot(bool bSpecial)
 	FString extra;
 	if (bSpecial)
 		extra = TEXT(" [SPECIAL]");
-	extra += TEXT(" Ammo left: ") + FString::FromInt(AmmoCount);
 
 	if (Type == ECannonType::FireProjectile) {
+		extra += TEXT(" Ammo left: ") + FString::FromInt(AmmoCount);
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3, FColor::Green, *(TEXT("Cannon: FireProjectile") + extra));
-		AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(
-			ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
-		if (projectile)
-			projectile->Start();
+		//GetWorld()->SpawnActor<AProjectile>(
+		//	ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
+		AProjectile* projectile;
+		FVector location = ProjectileSpawnPoint->GetComponentLocation();
+		FRotator rotation = ProjectileSpawnPoint->GetComponentRotation();
+		//if (bSpecial) {
+		//	actor = AProjectile::CreateInstance(this, ProjectileClass, location, rotation);
+		//}
+		//else {
+		//	auto world = GetWorld();
+		//	if (!world) {
+		//		UE_LOG(LogTankoGeddon, Log, TEXT("Failed get UWorld"));
+		//		return;
+		//	}
+		//	actor = world->SpawnActor(ProjectileClass, &location, &rotation);
+		//	//actor->UserD
+		//}
+		//FAttachmentTransformRules attachRules;
+		//attachRules.SnapToTargetNotIncludingScale = true;
+		projectile = AProjectile::CreateInstance(this, ProjectileClass, location, rotation);
+		//if (actor)
+		//	actor->AttachToComponent(ProjectileSpawnPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		//else UE_LOG(LogTankoGeddon, Error, TEXT("Failed get actor from pull"));
+		//projectile->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		if (!projectile) {
+			UE_LOG(LogTankoGeddon, Error, TEXT("Failed get actor from pull"));
+			return;
+		}
 	}
 	else if (Type == ECannonType::FireTrace) {
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3, FColor::Green, *(TEXT("Cannon: FireTrace") + extra));
@@ -61,41 +85,93 @@ void ACannon::Shot(bool bSpecial)
 	
 }
 
-void ACannon::Fire()
+void ACannon::SimpleShot()
+{
+	Shot(false);
+	PullBullitsFill();
+}
+
+void ACannon::SpecialShot()
+{
+	UWorld* world = GetWorld();
+	if (!world) {
+		UE_LOG(LogTankoGeddon, Log, TEXT("Failed get world"));
+		return;
+	}
+	Shot(true);
+	++curShotInSeries;
+	if (curShotInSeries == ShotsInSeries) {
+		PullBullitsFill();
+		world->GetTimerManager().SetTimer(ReloadTimerHandle, this, &ACannon::Reload, 1.f / FireRateSpecial, false);
+	}
+	else {
+		world->GetTimerManager().SetTimer(NextShotInSeries, this, &ACannon::SpecialShot, TimeBetweenSeriesOfShots, false);
+	}
+}
+
+void ACannon::FireGeneral(bool bSpecial)
 {
 	if (!IsReadyToFire()) return;
-
+	if (AmmoCount == 0) {
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Green, "Ammo left: " + FString::FromInt(AmmoCount));
+		return;
+	}
 	bIsReadyToFire = false;
-	SimpleShot();
+	--AmmoCount;
+
 	UWorld* world = GetWorld();
 	if (world) {
-		world->GetTimerManager().SetTimer(ReloadTimerHandle, this, &ACannon::Reload, 1.f / FireRate, false);
+		if (!bSpecial) {
+			SimpleShot();
+			world->GetTimerManager().SetTimer(ReloadTimerHandle, this, &ACannon::Reload, 1.f / FireRate, false);
+		} else {
+			curShotInSeries = 0;
+			SpecialShot();
+		}
 	}
+}
+
+void ACannon::PullBullitsFill()
+{
+	auto gameMode = ATankoGeddonGameModeBase::GetCurrentGameMode(this);
+	if (gameMode) gameMode->PullFill(ProjectileClass);
+}
+
+void ACannon::Fire()
+{
+	FireGeneral(false);
 }
 
 void ACannon::FireSpecial()
 {
-	if (!IsReadyToFire()) return;
-	bIsReadyToFire = false;
-	if (AmmoCount == 0) return;
-	--AmmoCount;
-	
-	UWorld* world = GetWorld();
-	if (world) {
-		SpecialShot();
-		for (int32 i = 1; i < FMath::Min(AmmoCount, ShotsInSeries); ++i) {
-			FTimerHandle* pTimerHandle = new FTimerHandle{};
-			TimerHandlesForSeriesOfShots.Add(pTimerHandle);
-			world->GetTimerManager().SetTimer(*pTimerHandle, this, &ACannon::SpecialShot, TimeBetweenSeriesOfShots * i, false);
-		}
-		float timeToFireUnlock = FMath::Max(TimeBetweenSeriesOfShots * ShotsInSeries, 1.f / FireRateSpecial);
-		world->GetTimerManager().SetTimer(ReloadTimerHandle, this, &ACannon::Reload, timeToFireUnlock, false);
-	}
+	FireGeneral(true);
 }
 
 bool ACannon::IsReadyToFire()
 {
 	return bIsReadyToFire;
+}
+
+void ACannon::AddBullits(int32 Count)
+{
+	SetupBullits(AmmoCount + Count);
+}
+
+void ACannon::SetupBullits(int32 Count)
+{
+	AmmoCount = Count;
+	if (MaxAmmoCount > 0) {
+		AmmoCount = FMath::Clamp(AmmoCount, 1, MaxAmmoCount);
+	}
+	FString msg = FString::Printf(TEXT("New ammo = %d"), AmmoCount);
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Green, msg);
+}
+
+bool ACannon::EqualProjectileClass(const ACannon* Other) const
+{
+	return Type == ECannonType::FireProjectile 
+		&& Other->Type == ECannonType::FireProjectile 
+		&& ProjectileClass == Other->ProjectileClass;
 }
 
 // Called when the game starts or when spawned
@@ -104,29 +180,33 @@ void ACannon::BeginPlay()
 	Super::BeginPlay();
 	
 	bIsReadyToFire = true;
+	if (Type == ECannonType::FireProjectile) {
+		ATankoGeddonGameModeBase::GetCurrentGameMode(this)->PullFill(ProjectileClass);
+	}
 }
 
 void ACannon::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandle);
-	ClearTimersForSeries();
+	//ClearTimersForSeries();
 }
 
 void ACannon::Reload()
 {
-	ClearTimersForSeries();
+	//ClearTimersForSeries();
 	bIsReadyToFire = true;
 
 }
 
-void ACannon::ClearTimersForSeries()
-{
-	if (TimerHandlesForSeriesOfShots.Num() > 0) {
-		for (auto timerHandle : TimerHandlesForSeriesOfShots) {
-			GetWorld()->GetTimerManager().ClearTimer(*timerHandle);
-			delete timerHandle;
-		}
-		TimerHandlesForSeriesOfShots.Empty();
-	}
-}
+//void ACannon::ClearTimersForSeries()
+//{
+//	if (TimerHandlesForSeriesOfShots.Num() > 0) {
+//		for (auto timerHandle : TimerHandlesForSeriesOfShots) {
+//			GetWorld()->GetTimerManager().ClearTimer(*timerHandle);
+//			delete timerHandle;
+//		}
+//		TimerHandlesForSeriesOfShots.Empty();
+//	}
+//}
+
