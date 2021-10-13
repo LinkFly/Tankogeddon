@@ -4,8 +4,12 @@
 #include "ActorsPull.h"
 #include "TankoGeddon.h"
 #include <Kismet/GameplayStatics.h>
+#include "Modules/ModuleManager.h"
+#include "Core/Public/Logging/LogMacros.h"
 
 DEFINE_LOG_CATEGORY(LogActorsPull)
+//DEFINE_LOG_CATEGORY(LogActorsPull2)
+//UActorsPull::DEFINE_LOG_CATEGORY(LogActorsPull)
 
 UActorsPull::UActorsPull()
 {
@@ -15,8 +19,11 @@ UActorsPull::UActorsPull()
 AActor* UActorsPull::ReceiveActor(TSubclassOf<AActor> ActorClass, 
 	const FVector& Location, const FRotator& Rotation)
 {
+	
+	//UE_LOG(LogActorsPull2, Log, TEXT("---------- TEST LogActorsPull2 ---------"));
 	UE_LOG(LogActorsPull, Log, TEXT("Receive actor by class: %s"), *ActorClass->GetName());
 	AActor* pActor = TryGetActorFromPool(ActorClass);
+	//pActor->SetActorTransform()
 	if (pActor) {
 		UE_LOG(LogActorsPull, Log, TEXT("GetFrom pull: %s"), *pActor->GetName());
 	}

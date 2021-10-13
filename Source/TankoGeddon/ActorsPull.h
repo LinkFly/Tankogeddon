@@ -15,7 +15,8 @@ UCLASS()
 class TANKOGEDDON_API UActorsPull : public UObject
 {
 	GENERATED_BODY()
-
+	//DECLARE_LOG_CATEGORY_CLASS(LogActorsPull, Log, All)
+	//DEFINE_LOG_CATEGORY(LogActorsPull)
 public:
 	UActorsPull();
 	int32 MaxSubPullsCount = 10;
