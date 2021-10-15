@@ -9,6 +9,7 @@
 #include "TankoGeddon.h"
 #include <Kismet/KismetMathLibrary.h>
 #include "Cannon.h"
+#include "HealthComponent.h"
 
 // Sets default values
 ATankPawn::ATankPawn()
@@ -34,6 +35,10 @@ ATankPawn::ATankPawn()
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
+
+	Health = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
+	Health->OnChangedHealth.AddDynamic(this, &ATankPawn::OnChangedHealth);
+	Health->OnMakeDeath.AddDynamic(this, &ATankPawn::OnMakeDeath);
 
 }
 
@@ -72,6 +77,12 @@ void ATankPawn::Tick(float DeltaTime)
 	targetRotation.Pitch = curRotation.Pitch;
 	targetRotation.Roll = curRotation.Roll;
 	TurretMesh->SetWorldRotation(FMath::RInterpTo(curRotation, targetRotation, DeltaTime, TurretRotationSmoothness));
+}
+
+void ATankPawn::TakeDamageData_Implementation(const FDamageData& DamageData)
+{
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.f, FColor::Red, TEXT("-- Tank Damage --"));
+	Health->TakeDamage(DamageData);
 }
 
 void ATankPawn::MoveForward(float InAxisValue)
@@ -181,4 +192,16 @@ void ATankPawn::AddBullits(int32 Count)
 	if (Cannon) {
 		Cannon->AddBullits(Count);
 	}
+}
+
+void ATankPawn::OnChangedHealth(int32 DamageValue)
+{
+	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.f, FColor::Red, 
+		TEXT("Damage = ") + FString::FromInt(DamageValue) + 
+		TEXT(", Health = ") + FString::FromInt(Health->GetHealth()));
+}
+
+void ATankPawn::OnMakeDeath()
+{
+	Destroy();
 }

@@ -5,7 +5,10 @@
 #include <Components/SceneComponent.h>
 #include <Components/StaticMeshComponent.h>
 #include "TankoGeddon.h"
+#include "Damageable.h"
+#include "GameStructs.h"
 #include <Kismet/GameplayStatics.h>
+#include <Components/PrimitiveComponent.h>
 
 // Sets default values
 AProjectile::AProjectile()
@@ -28,10 +31,26 @@ AProjectile::AProjectile()
 
 void AProjectile::OnMeshHit(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Green, "Hit");
+	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Green, 
+		//"Hit. Actor Name = " + OtherActor->GetName() + ", OtherComp Name = " + OtherComp->GetName());
+	if (OtherActor == GetInstigator()) {
+		ReleaseInstance(this, this);
+		return;
+	}
 	auto tmp = OtherComp->GetCollisionObjectType();
 	if (OtherActor && OtherComp && OtherComp->GetCollisionObjectType() == ECC_Destructible) {
-		OtherActor->Destroy();
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Here"));
+		auto damageable = Cast<IDamageable>(OtherActor);
+		if (damageable) {
+			FDamageData damageData;
+			damageData.DamageValue = Damage;
+			damageData.Instigator = GetInstigator();
+			damageData.DamageMaker = this;
+			damageable->Execute_TakeDamageData(OtherActor, damageData);
+		}
+		else {
+			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Red, "AProjectile: Failed Cast");
+		}
 	}
 	UE_LOG(LogTankoGeddon, Log, TEXT("Destroy on hit: %s"), *GetName());
 	//Destroy();

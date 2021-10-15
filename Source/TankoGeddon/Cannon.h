@@ -99,4 +99,6 @@ private:
 	void FireGeneral(bool bSpecial);
 	void PullBullitsFill();
 	//void HandlerEndSeries();
+
+
 };

@@ -23,6 +23,7 @@ ACannon::ACannon()
 	Mesh->SetupAttachment(RootComponent);
 
 	ProjectileSpawnPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("Spawn point"));
+	//AttachToComponent(Mesh, FAttachmentTransformRules::SnapToTargetIncludingScale);
 	ProjectileSpawnPoint->SetupAttachment(Mesh);
 }
 
@@ -34,31 +35,11 @@ void ACannon::Shot(bool bSpecial)
 
 	if (Type == ECannonType::FireProjectile) {
 		extra += TEXT(" Ammo left: ") + FString::FromInt(AmmoCount);
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3, FColor::Green, *(TEXT("Cannon: FireProjectile") + extra));
-		//GetWorld()->SpawnActor<AProjectile>(
-		//	ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
 		AProjectile* projectile;
 		FVector location = ProjectileSpawnPoint->GetComponentLocation();
 		FRotator rotation = ProjectileSpawnPoint->GetComponentRotation();
-		//if (bSpecial) {
-		//	actor = AProjectile::CreateInstance(this, ProjectileClass, location, rotation);
-		//}
-		//else {
-		//	auto world = GetWorld();
-		//	if (!world) {
-		//		UE_LOG(LogTankoGeddon, Log, TEXT("Failed get UWorld"));
-		//		return;
-		//	}
-		//	actor = world->SpawnActor(ProjectileClass, &location, &rotation);
-		//	//actor->UserD
-		//}
-		//FAttachmentTransformRules attachRules;
-		//attachRules.SnapToTargetNotIncludingScale = true;
 		projectile = AProjectile::CreateInstance(this, ProjectileClass, location, rotation);
-		//if (actor)
-		//	actor->AttachToComponent(ProjectileSpawnPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-		//else UE_LOG(LogTankoGeddon, Error, TEXT("Failed get actor from pull"));
-		//projectile->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		projectile->SetInstigator(GetInstigator());
 		if (!projectile) {
 			UE_LOG(LogTankoGeddon, Error, TEXT("Failed get actor from pull"));
 			return;
@@ -113,7 +94,7 @@ void ACannon::FireGeneral(bool bSpecial)
 {
 	if (!IsReadyToFire()) return;
 	if (AmmoCount == 0) {
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Green, "Ammo left: " + FString::FromInt(AmmoCount));
+		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Green, "Ammo left: " + FString::FromInt(AmmoCount));
 		return;
 	}
 	bIsReadyToFire = false;
@@ -189,24 +170,9 @@ void ACannon::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandle);
-	//ClearTimersForSeries();
 }
 
 void ACannon::Reload()
 {
-	//ClearTimersForSeries();
 	bIsReadyToFire = true;
-
 }
-
-//void ACannon::ClearTimersForSeries()
-//{
-//	if (TimerHandlesForSeriesOfShots.Num() > 0) {
-//		for (auto timerHandle : TimerHandlesForSeriesOfShots) {
-//			GetWorld()->GetTimerManager().ClearTimer(*timerHandle);
-//			delete timerHandle;
-//		}
-//		TimerHandlesForSeriesOfShots.Empty();
-//	}
-//}
-

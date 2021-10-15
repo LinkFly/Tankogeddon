@@ -5,10 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "TankogeddonGameModeBase.h"
+#include "Damageable.h"
 #include "Projectile.generated.h"
 
 UCLASS()
-class TANKOGEDDON_API AProjectile : public AActor
+class TANKOGEDDON_API AProjectile : public AActor, public IDamageable
 {
 	GENERATED_BODY()
 	
@@ -17,6 +18,8 @@ public:
 		const FVector& Location, const FRotator& Rotation);
 
 	static bool ReleaseInstance(AActor* Owner, AProjectile* Projectile);
+
+	static ATankoGeddonGameModeBase* GetCurrentGameMode(AActor* Owner);
 
 	// Sets default values for this actor's properties
 	AProjectile();
@@ -32,7 +35,10 @@ protected:
 	float FireRange = 1000.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Influence")
-	float Damage = 1.f;
+	int32 Damage = 2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interfaces")
+	TScriptInterface<IDamageable> DamageInterface;
 
 	// Called when the game starts or when spawned
 	//virtual void BeginPlay() override;
@@ -44,7 +50,7 @@ protected:
 	UFUNCTION()
 	void Move();
 
-	static ATankoGeddonGameModeBase* GetCurrentGameMode(AActor* Owner);
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

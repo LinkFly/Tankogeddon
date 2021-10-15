@@ -5,10 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include <UObject/ConstructorHelpers.h>
+#include "Damageable.h"
+#include "GameStructs.h"
 #include "Turret.generated.h"
 
-UCLASS()
-class TANKOGEDDON_API ATurret : public AActor
+UCLASS(BlueprintType)
+class TANKOGEDDON_API ATurret : public AActor, public IDamageable
 {
 	GENERATED_BODY()
 	
@@ -17,12 +19,7 @@ public:
 	ATurret();
 
 	template <typename TResourceClass>
-	static FORCEINLINE TResourceClass* LoadObjectFromGamePath(const FString& GamePath)
-	{
-		ConstructorHelpers::FObjectFinder<UStaticMesh> finder(*GamePath);
-		//UE_LOG(LogTankoGeddon, Log, TEXT("bodyFoundTemp.Object: %p"), bodyFoundTemp.Object);
-		return finder.Object ? finder.Object : nullptr;
-	}
+	static FORCEINLINE TResourceClass* LoadObjectFromGamePath(const FString& GamePath);
 
 protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
@@ -36,6 +33,9 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	class UBoxComponent* HitCollider;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	class UHealthComponent* Health;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	TSubclassOf<class ACannon> CannonClass;
@@ -52,6 +52,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	float Accuracy = 10.f;
 
+	/*UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	int32 Health = 10;*/
+
 	const FString BodyMeshPath = "StaticMesh'/Game/CSC/Meshes/CopyForFix_SM_CSC_Tower1.CopyForFix_SM_CSC_Tower1'";
 	const FString TurretMeshPath = "StaticMesh'/Game/CSC/Meshes/SM_CSC_Gun1.SM_CSC_Gun1'";
 
@@ -65,20 +68,50 @@ protected:
 	void Fire();
 
 	//TEMPLATE Load Obj From Path
-	template <typename ObjClass>
-	static FORCEINLINE ObjClass* LoadObjFromPath(const FString& Path)
-	{
-		return Cast<ObjClass>(StaticLoadObject(ObjClass::StaticClass(), NULL, *Path));
-	}
+	//template <typename ObjClass>
+	//static FORCEINLINE ObjClass* LoadObjFromPath(const FString& Path)
+	//{
+	//	return Cast<ObjClass>(StaticLoadObject(ObjClass::StaticClass(), NULL, *Path));
+	//}
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void TakeDamageData_Implementation(const FDamageData& DamageData) override;
+	//virtual void Damage_Implementation(const FDamageData& DamageData) override;
+
+	//void Damage(int32 Power);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
+	bool bEnableFire = true;
+public:
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnChangedHealth(int32 DamageValue);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnMakeDeath();
+
+	//UFUNCTION(Eve)
 private:
 	UPROPERTY()
 	class ACannon* Cannon;
 
 	UPROPERTY()
 	class APawn* PlayerPawn;
+
+	UFUNCTION()
+	void OnHitBody(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	UFUNCTION()
+	void OnHitTurret(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	
+
+
 };
+
+template <typename TResourceClass>
+FORCEINLINE TResourceClass* ATurret::LoadObjectFromGamePath(const FString& GamePath)
+{
+	ConstructorHelpers::FObjectFinder<UStaticMesh> finder(*GamePath);
+	//UE_LOG(LogTankoGeddon, Log, TEXT("bodyFoundTemp.Object: %p"), bodyFoundTemp.Object);
+	return finder.Object ? finder.Object : nullptr;
+}
