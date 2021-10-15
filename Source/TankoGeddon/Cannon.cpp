@@ -56,9 +56,15 @@ void ACannon::Shot(bool bSpecial)
 			(ECollisionChannel::ECC_GameTraceChannel1), traceParams);
 		if (res) {
 			traceEnd = outHit.Location;
-			if (outHit.Actor.IsValid() && outHit.Component.IsValid()
-				&& outHit.Component->GetCollisionObjectType() == ECollisionChannel::ECC_Destructible) {
-				outHit.Actor->Destroy();
+			//if (outHit.Actor.IsValid() && outHit.Component.IsValid()
+			//	&& outHit.Component->GetCollisionObjectType() == ECollisionChannel::ECC_Destructible) {
+			//	outHit.Actor->Destroy();
+			//}
+			auto otherActor = outHit.Actor;
+			auto otherComp = outHit.Component;
+			if (otherActor.IsValid() && otherComp.IsValid()) {
+				ATankoGeddonGameModeBase::GetCurrentGameMode(this)->CheckingAndDamage(
+					FireTraceDamage, this, GetInstigator(), otherActor.Get(), otherComp.Get());
 			}
 		}
 		DrawDebugLine(GetWorld(), traceStart, traceEnd, FColor::Green, false, .5f, 0, 5.f);

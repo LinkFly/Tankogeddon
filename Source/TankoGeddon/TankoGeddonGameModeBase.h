@@ -21,8 +21,11 @@ class TANKOGEDDON_API ATankoGeddonGameModeBase : public AGameModeBase
 	}*/
 
 public:
-	static ATankoGeddonGameModeBase* GetCurrentGameMode(AActor* LiveActor);
 	ATankoGeddonGameModeBase();
+
+	static ATankoGeddonGameModeBase* GetCurrentGameMode(AActor* LiveActor);
+	static void CheckingAndDamage(int32 Damage, AActor* DamageMaker, class APawn* Instigator, class AActor* OtherActor, class UPrimitiveComponent* OtherComp);
+	
 	void PullFill(TSubclassOf<AActor> ActorClass);
 	AActor* ReceiveActor(TSubclassOf<AActor> ActorClass,
 			const FVector& Location, const FRotator& Rotation);

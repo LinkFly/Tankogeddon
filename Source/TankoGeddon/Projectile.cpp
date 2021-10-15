@@ -9,6 +9,7 @@
 #include "GameStructs.h"
 #include <Kismet/GameplayStatics.h>
 #include <Components/PrimitiveComponent.h>
+#include "TankogeddonGameModeBase.h"
 
 // Sets default values
 AProjectile::AProjectile()
@@ -37,23 +38,9 @@ void AProjectile::OnMeshHit(class UPrimitiveComponent* HitComponent, class AActo
 		ReleaseInstance(this, this);
 		return;
 	}
-	auto tmp = OtherComp->GetCollisionObjectType();
-	if (OtherActor && OtherComp && OtherComp->GetCollisionObjectType() == ECC_Destructible) {
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Here"));
-		auto damageable = Cast<IDamageable>(OtherActor);
-		if (damageable) {
-			FDamageData damageData;
-			damageData.DamageValue = Damage;
-			damageData.Instigator = GetInstigator();
-			damageData.DamageMaker = this;
-			damageable->Execute_TakeDamageData(OtherActor, damageData);
-		}
-		else {
-			GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Red, "AProjectile: Failed Cast");
-		}
-	}
-	UE_LOG(LogTankoGeddon, Log, TEXT("Destroy on hit: %s"), *GetName());
-	//Destroy();
+
+	ATankoGeddonGameModeBase::GetCurrentGameMode(this)->CheckingAndDamage(Damage, this, GetInstigator(), OtherActor, OtherComp);
+
 	ReleaseInstance(this, this);
 }
 

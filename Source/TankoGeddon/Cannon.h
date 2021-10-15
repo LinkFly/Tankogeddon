@@ -47,6 +47,11 @@ protected:
 		Category = "FireParams")
 	float FireRange = 1000.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite,
+		meta = (EditCondition = "Type == ECannonType::FireTrace", EditConditionHides),
+		Category = "FireParams")
+	int32 FireTraceDamage = 5;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FireParams")
 	float FireDamage = 1.f;
 
