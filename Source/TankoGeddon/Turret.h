@@ -7,10 +7,11 @@
 #include <UObject/ConstructorHelpers.h>
 #include "Damageable.h"
 #include "GameStructs.h"
+#include "ShootingUnit.h"
 #include "Turret.generated.h"
 
 UCLASS(BlueprintType)
-class TANKOGEDDON_API ATurret : public AActor, public IDamageable
+class TANKOGEDDON_API ATurret : public AShootingUnit, public IDamageable
 {
 	GENERATED_BODY()
 	

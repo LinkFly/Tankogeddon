@@ -8,10 +8,11 @@
 #include "Damageable.h"
 #include "GameStructs.h"
 #include "TankoGeddon.h"
+#include "ShootingUnit.h"
 #include "TankPawn.generated.h"
 
 UCLASS()
-class TANKOGEDDON_API ATankPawn : public APawn, public IDamageable
+class TANKOGEDDON_API ATankPawn : public AShootingUnit, public IDamageable
 {
 	GENERATED_BODY()
 
