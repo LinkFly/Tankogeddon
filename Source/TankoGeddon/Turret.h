@@ -11,7 +11,7 @@
 #include "Turret.generated.h"
 
 UCLASS(BlueprintType)
-class TANKOGEDDON_API ATurret : public AShootingUnit, public IDamageable
+class TANKOGEDDON_API ATurret : public AShootingUnit/*, public IDamageable*/
 {
 	GENERATED_BODY()
 	
@@ -36,9 +36,6 @@ protected:
 	class UBoxComponent* HitCollider;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	class UHealthComponent* Health;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	TSubclassOf<class ACannon> CannonClass;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
@@ -52,9 +49,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	float Accuracy = 10.f;
-
-	/*UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
-	int32 Health = 10;*/
 
 	const FString BodyMeshPath = "StaticMesh'/Game/CSC/Meshes/CopyForFix_SM_CSC_Tower1.CopyForFix_SM_CSC_Tower1'";
 	const FString TurretMeshPath = "StaticMesh'/Game/CSC/Meshes/SM_CSC_Gun1.SM_CSC_Gun1'";
@@ -79,20 +73,13 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void TakeDamageData_Implementation(const FDamageData& DamageData) override;
 	//virtual void Damage_Implementation(const FDamageData& DamageData) override;
 
 	//void Damage(int32 Power);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
 	bool bEnableFire = true;
-public:
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void OnChangedHealth(int32 DamageValue);
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void OnMakeDeath();
 
-	//UFUNCTION(Eve)
 private:
 	UPROPERTY()
 	class ACannon* Cannon;
@@ -104,8 +91,6 @@ private:
 	void OnHitBody(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 	UFUNCTION()
 	void OnHitTurret(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-	
-
 
 };
 

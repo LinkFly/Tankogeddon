@@ -46,6 +46,12 @@ ATankPawn::ATankPawn()
 void ATankPawn::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//for (int32 i = 0; i < 5; ++i) {
+	//	TestToBaseProperty.Add(static_cast<int32>(i));
+	//}
+	//TestToBaseFunction();
+
 	SetupCannon();
 }
 
@@ -62,27 +68,8 @@ void ATankPawn::Tick(float DeltaTime)
 	float rotation = GetActorRotation().Yaw + CurrentRotateRightAxis * RotationSpeed;
 	SetActorRotation(FRotator{0, rotation, 0});
 
-	FRotator targetRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TurretTargetPosition);
-	float TargetRotationYaw = targetRotation.Yaw;
-	FRotator curRotation = TurretMesh->GetComponentRotation();
+	RotatingToTarget(TurretMesh, TurretTargetPosition, TurretRotationSmoothness, false);
 
-	//float curRotationYaw = curRotation.Yaw;
-	//float targetRotationYaw = targetRotation.Yaw;
-	//if (FMath::Sign(curRotationYaw) != FMath::Sign(targetRotationYaw)
-	//	&& FMath::Abs(curRotationYaw - targetRotationYaw) > 180.f) {
-	//	targetRotationYaw += FMath::Sign(curRotationYaw) * 360.f;
-	//}
-	//curRotation.Yaw = FMath::FInterpTo(curRotationYaw, targetRotationYaw, DeltaTime, TurretRotationSmoothness);
-	//TurretMesh->SetWorldRotation(curRotation);
-	targetRotation.Pitch = curRotation.Pitch;
-	targetRotation.Roll = curRotation.Roll;
-	TurretMesh->SetWorldRotation(FMath::RInterpTo(curRotation, targetRotation, DeltaTime, TurretRotationSmoothness));
-}
-
-void ATankPawn::TakeDamageData_Implementation(const FDamageData& DamageData)
-{
-	//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.f, FColor::Red, TEXT("-- Tank Damage --"));
-	Health->TakeDamage(DamageData);
 }
 
 void ATankPawn::MoveForward(float InAxisValue)
@@ -134,19 +121,6 @@ void ATankPawn::SetupCannon(TSubclassOf<class ACannon> NewCannonClass)
 		}
 	}
 	else {
-		//if (CannonsClasses.Num() >= 1 && CannonsClasses.Last() == NewCannonClass) {
-		//	//UE_LOG(LogTankoGeddon, Log, TEXT("if Cannon"));
-		//	//if (newCannon->Type == Cannon->Type && newCannon->Type == ECannonType::FireProjectile
-		//	//	&& newCannon->EqualProjectileClass(Cannon))
-		//	//{
-		//	//	UE_LOG(LogTankoGeddon, Log, TEXT("equal cannons"));
-		//	//	SetupBullits(newCannon->AmmoCount + Cannon->AmmoCount, newCannon);
-		//	//}
-		//	//auto tmpObj = NewObject(nullptr, NewCannonClass);
-		//	//tmpObj->Destroy();
-		//	//NewCannonClass->GetDefaultAmmoCount();
-		//	//return;
-		//}
 		if (!(CannonsClasses.Num() >= 1 && CannonsClasses.Last() == NewCannonClass))
 		{
 			if (CannonsClasses.Num() < MaxCannons) {
@@ -194,14 +168,4 @@ void ATankPawn::AddBullits(int32 Count)
 	}
 }
 
-void ATankPawn::OnChangedHealth(int32 DamageValue)
-{
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.f, FColor::Red, 
-		TEXT("Damage = ") + FString::FromInt(DamageValue) + 
-		TEXT(", Health = ") + FString::FromInt(Health->GetHealth()));
-}
 
-void ATankPawn::OnMakeDeath()
-{
-	Destroy();
-}

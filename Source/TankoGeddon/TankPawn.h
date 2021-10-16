@@ -12,7 +12,7 @@
 #include "TankPawn.generated.h"
 
 UCLASS()
-class TANKOGEDDON_API ATankPawn : public AShootingUnit, public IDamageable
+class TANKOGEDDON_API ATankPawn : public AShootingUnit/*, public IDamageable*/
 {
 	GENERATED_BODY()
 
@@ -35,9 +35,6 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	class UArrowComponent* CannonSpawnPoint;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement|Speed")
-	class UHealthComponent* Health;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement|Speed")
 	float MoveSpeed = 100.f;
@@ -70,8 +67,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void TakeDamageData_Implementation(const FDamageData& DamageData) override;
-
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void MoveForward(float InAxisValue);
 
@@ -99,11 +94,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Turret")
 	void AddBullits(int32 Count);
-
-	UFUNCTION()
-	void OnChangedHealth(int32 DamageValue);
-	UFUNCTION()
-	void OnMakeDeath();
 
 private:
 	float CurrentMoveForwardAxis = 0.f;
