@@ -36,10 +36,6 @@ ATankPawn::ATankPawn()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
 
-	Health = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
-	Health->OnChangedHealth.AddDynamic(this, &ATankPawn::OnChangedHealth);
-	Health->OnMakeDeath.AddDynamic(this, &ATankPawn::OnMakeDeath);
-
 }
 
 // Called when the game starts or when spawned

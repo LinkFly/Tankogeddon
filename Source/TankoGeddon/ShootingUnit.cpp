@@ -6,33 +6,16 @@
 #include <Kismet/KismetMathLibrary.h>
 
 //// Sets default values
-//AShootingUnit::AShootingUnit()
-//{
-// 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-//	PrimaryActorTick.bCanEverTick = true;
-//
-//}
-//
-//// Called when the game starts or when spawned
-//void AShootingUnit::BeginPlay()
-//{
-//	Super::BeginPlay();
-//	
-//}
-//
-//// Called every frame
-//void AShootingUnit::Tick(float DeltaTime)
-//{
-//	Super::Tick(DeltaTime);
-//
-//}
-//
-//// Called to bind functionality to input
-//void AShootingUnit::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-//{
-//	Super::SetupPlayerInputComponent(PlayerInputComponent);
-//
-//}
+AShootingUnit::AShootingUnit()
+{
+ 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+	Health = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
+	Health->OnChangedHealth.AddDynamic(this, &AShootingUnit::OnChangedHealth);
+	Health->OnMakeDeath.AddDynamic(this, &AShootingUnit::OnMakeDeath);
+
+}
 
 void AShootingUnit::RotatingToTarget(USceneComponent* Component, const FVector& TargetPosition,
 	float Speed, bool bUseConstInterpFunc)
@@ -58,11 +41,6 @@ void AShootingUnit::TakeDamageData_Implementation(const FDamageData& DamageData)
 	//Damage(DamageData.DamageValue);
 	Health->TakeDamage(DamageData);
 }
-
-//void AShootingUnit::TestToBaseFunction()
-//{
-//	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Green, TEXT("------------- [ TestToBaseFunction ] "));
-//}
 
 void AShootingUnit::OnChangedHealth_Implementation(int32 DamageValue)
 {

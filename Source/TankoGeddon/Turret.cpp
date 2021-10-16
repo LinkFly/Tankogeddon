@@ -32,8 +32,6 @@ ATurret::ATurret()
 	HitCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("HitCollider"));
 	HitCollider->SetupAttachment(TurretMesh);
 
-	Health = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
-
 	if (auto tempMesh = LoadObjectFromGamePath<UStaticMesh>(BodyMeshPath))
 		BodyMesh->SetStaticMesh(tempMesh);
 
@@ -42,8 +40,6 @@ ATurret::ATurret()
 
 	BodyMesh->OnComponentHit.AddDynamic(this, &ATurret::OnHitBody);
 	TurretMesh->OnComponentHit.AddDynamic(this, &ATurret::OnHitTurret);
-	Health->OnChangedHealth.AddDynamic(this, &ATurret::OnChangedHealth);
-	Health->OnMakeDeath.AddDynamic(this, &ATurret::OnMakeDeath);
 
 }
 
