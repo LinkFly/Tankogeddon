@@ -38,8 +38,16 @@ void AShootingUnit::TakeDamageData_Implementation(const FDamageData& DamageData)
 {
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Orange,
 		TEXT("[implemented] Turret is taked damage: ") + FString::FromInt(DamageData.DamageValue));
-	//Damage(DamageData.DamageValue);
 	Health->TakeDamage(DamageData);
+}
+
+void AShootingUnit::DestroyThisUnit(const TArray<AActor*>& CreatedActors)
+{
+	for (auto& child : CreatedActors) {
+		if (child && !child->IsPendingKill()) {
+			child->Destroy();
+		}
+	}
 }
 
 void AShootingUnit::OnChangedHealth_Implementation(int32 DamageValue)
@@ -52,6 +60,5 @@ void AShootingUnit::OnChangedHealth_Implementation(int32 DamageValue)
 void AShootingUnit::OnMakeDeath_Implementation()
 {
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Red, TEXT("ParentOnDie"));
-	// TODO!!! Destroy Cannon
 	Destroy();
 }

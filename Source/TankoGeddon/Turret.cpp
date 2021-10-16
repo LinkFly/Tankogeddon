@@ -63,9 +63,8 @@ void ATurret::Destroyed()
 {
 	Super::Destroyed();
 
-	if (Cannon) {
-		Cannon->Destroy();
-	}
+	DestroyThisUnit({Cannon});
+
 }
 
 void ATurret::Targeting()

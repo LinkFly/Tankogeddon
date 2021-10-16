@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Damageable.h"
+#include <GameFramework/Actor.h>
 #include "ShootingUnit.generated.h"
 
 UCLASS()
@@ -16,6 +17,14 @@ public:
 //	// Sets default values for this pawn's properties
 	AShootingUnit();
 
+	// Utility for loading assets (for example UStaticMesh)
+	template <typename TResourceClass>
+	FORCEINLINE TResourceClass* LoadObjectFromGamePath(const FString& GamePath)
+	{
+		ConstructorHelpers::FObjectFinder<UStaticMesh> finder(*GamePath);
+		return finder.Object ? finder.Object : nullptr;
+	}
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement|Speed")
 	class UHealthComponent* Health;
 
@@ -23,6 +32,9 @@ public:
 		float Speed, bool bUseConstInterpFunc = false);
 
 	virtual void TakeDamageData_Implementation(const FDamageData& DamageData) override;
+	
+	UFUNCTION(BlueprintCallable)
+	void DestroyThisUnit(const TArray<AActor*>& CreatedActors);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void OnChangedHealth(int32 DamageValue);

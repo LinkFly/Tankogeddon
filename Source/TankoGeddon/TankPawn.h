@@ -59,7 +59,7 @@ protected:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	virtual void Destroyed() override;
 public:	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Turret")
 	TArray<TSubclassOf<class ACannon>> CannonsClasses;

@@ -19,9 +19,6 @@ public:
 	// Sets default values for this actor's properties
 	ATurret();
 
-	template <typename TResourceClass>
-	static FORCEINLINE TResourceClass* LoadObjectFromGamePath(const FString& GamePath);
-
 protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	class UStaticMeshComponent* BodyMesh;
@@ -56,26 +53,16 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void Destroyed() override;
+
 	void Targeting();
 	void RotateToPlayer();
 	bool IsPlayerInRange();
 	bool CanFire();
 	void Fire();
 
-	//TEMPLATE Load Obj From Path
-	//template <typename ObjClass>
-	//static FORCEINLINE ObjClass* LoadObjFromPath(const FString& Path)
-	//{
-	//	return Cast<ObjClass>(StaticLoadObject(ObjClass::StaticClass(), NULL, *Path));
-	//}
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	//virtual void Damage_Implementation(const FDamageData& DamageData) override;
-
-	//void Damage(int32 Power);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire")
 	bool bEnableFire = true;
@@ -94,10 +81,3 @@ private:
 
 };
 
-template <typename TResourceClass>
-FORCEINLINE TResourceClass* ATurret::LoadObjectFromGamePath(const FString& GamePath)
-{
-	ConstructorHelpers::FObjectFinder<UStaticMesh> finder(*GamePath);
-	//UE_LOG(LogTankoGeddon, Log, TEXT("bodyFoundTemp.Object: %p"), bodyFoundTemp.Object);
-	return finder.Object ? finder.Object : nullptr;
-}

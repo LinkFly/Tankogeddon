@@ -43,11 +43,6 @@ void ATankPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//for (int32 i = 0; i < 5; ++i) {
-	//	TestToBaseProperty.Add(static_cast<int32>(i));
-	//}
-	//TestToBaseFunction();
-
 	SetupCannon();
 }
 
@@ -164,4 +159,9 @@ void ATankPawn::AddBullits(int32 Count)
 	}
 }
 
+void ATankPawn::Destroyed()
+{
+	Super::Destroyed();
 
+	DestroyThisUnit({ Cannon });
+}
