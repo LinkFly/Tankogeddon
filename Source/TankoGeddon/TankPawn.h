@@ -8,10 +8,11 @@
 #include "Damageable.h"
 #include "GameStructs.h"
 #include "TankoGeddon.h"
+#include "ShootingUnit.h"
 #include "TankPawn.generated.h"
 
 UCLASS()
-class TANKOGEDDON_API ATankPawn : public APawn, public IDamageable
+class TANKOGEDDON_API ATankPawn : public AShootingUnit/*, public IDamageable*/
 {
 	GENERATED_BODY()
 
@@ -36,9 +37,6 @@ protected:
 	class UArrowComponent* CannonSpawnPoint;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement|Speed")
-	class UHealthComponent* Health;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement|Speed")
 	float MoveSpeed = 100.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement|Speed")
@@ -61,15 +59,13 @@ protected:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	virtual void Destroyed() override;
 public:	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Turret")
 	TArray<TSubclassOf<class ACannon>> CannonsClasses;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	virtual void TakeDamageData_Implementation(const FDamageData& DamageData) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void MoveForward(float InAxisValue);
@@ -98,11 +94,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Turret")
 	void AddBullits(int32 Count);
-
-	UFUNCTION()
-	void OnChangedHealth(int32 DamageValue);
-	UFUNCTION()
-	void OnMakeDeath();
 
 private:
 	float CurrentMoveForwardAxis = 0.f;

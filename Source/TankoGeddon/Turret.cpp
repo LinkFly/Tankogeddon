@@ -22,12 +22,6 @@ ATurret::ATurret()
 	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
 	RootComponent = BodyMesh;
 
-	//auto Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	//RootComponent = Scene;
-
-	//BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
-	//BodyMesh->AttachToComponent(Scene, FAttachmentTransformRules::KeepRelativeTransform);
-
 	TurretMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TurretMesh"));
 	//TurretMesh->SetupAttachment(BodyMesh);
 	TurretMesh->AttachToComponent(BodyMesh, FAttachmentTransformRules::KeepRelativeTransform);
@@ -38,8 +32,6 @@ ATurret::ATurret()
 	HitCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("HitCollider"));
 	HitCollider->SetupAttachment(TurretMesh);
 
-	Health = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
-
 	if (auto tempMesh = LoadObjectFromGamePath<UStaticMesh>(BodyMeshPath))
 		BodyMesh->SetStaticMesh(tempMesh);
 
@@ -48,8 +40,6 @@ ATurret::ATurret()
 
 	BodyMesh->OnComponentHit.AddDynamic(this, &ATurret::OnHitBody);
 	TurretMesh->OnComponentHit.AddDynamic(this, &ATurret::OnHitTurret);
-	Health->OnChangedHealth.AddDynamic(this, &ATurret::OnChangedHealth);
-	Health->OnMakeDeath.AddDynamic(this, &ATurret::OnMakeDeath);
 
 }
 
@@ -73,9 +63,8 @@ void ATurret::Destroyed()
 {
 	Super::Destroyed();
 
-	if (Cannon) {
-		Cannon->Destroy();
-	}
+	DestroyThisUnit({Cannon});
+
 }
 
 void ATurret::Targeting()
@@ -90,13 +79,7 @@ void ATurret::Targeting()
 
 void ATurret::RotateToPlayer()
 {
-	FRotator targetRotation = 
-		UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), PlayerPawn->GetActorLocation());
-	FRotator curRotation = TurretMesh->GetComponentRotation();
-	targetRotation.Pitch = curRotation.Pitch;
-	targetRotation.Roll = curRotation.Roll;
-	TurretMesh->SetWorldRotation(
-		FMath::RInterpConstantTo(curRotation, targetRotation, GetWorld()->GetDeltaSeconds(), TargetingSpeed));
+	RotatingToTarget(TurretMesh, PlayerPawn->GetActorLocation(), TargetingSpeed, true);
 }
 
 bool ATurret::IsPlayerInRange()
@@ -128,7 +111,6 @@ void ATurret::Tick(float DeltaTime)
 	if (PlayerPawn) {
 		Targeting();
 	}
-	
 }
 
 void ATurret::OnHitTurret(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -136,30 +118,9 @@ void ATurret::OnHitTurret(class UPrimitiveComponent* HitComponent, class AActor*
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Red, TEXT("-- Turret HIT Body---"));
 }
 
-void ATurret::OnChangedHealth_Implementation(int32 DamageValue)
-{
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Red, 
-		TEXT("[PARENT]Damage: ") + FString::FromInt(DamageValue)
-		+ TEXT(" Health left: ") + FString::FromInt(Health->GetHealth()));
-}
-
-void ATurret::OnMakeDeath_Implementation()
-{
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Red, TEXT("ParentOnDie"));
-	Destroy();
-}
-
 void ATurret::OnHitBody(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Red, TEXT("-- Turret HIT Turret---"));
-}
-
-void ATurret::TakeDamageData_Implementation(const FDamageData& DamageData)
-{
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 3.f, FColor::Orange,
-		TEXT("[implemented] Turret is taked damage: ") + FString::FromInt(DamageData.DamageValue));
-	//Damage(DamageData.DamageValue);
-	Health->TakeDamage(DamageData);
 }
 
 
